@@ -4,10 +4,10 @@ import {
 	updateQuantity,
 	updateDeliveryOption,
 } from '../../data/cart.js';
-import { products } from '../../data/products.js'; // export using brackets is called a named export
+import { products, getProduct } from '../../data/products.js'; // export using brackets is called a named export
 import formatCurrency from '../utils/money.js'; // a default export (there can only be one)
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
-import { deliveryOptions } from '../../data/deliveryOptions.js';
+import { deliveryOptions, getDeliveryOption } from '../../data/deliveryOptions.js';
 
 const today = dayjs();
 const deliveryDate = today.add(7, 'days');
@@ -18,23 +18,11 @@ export function renderOrderSummary() {
 	cart.forEach((cartItem) => {
 		const productId = cartItem.productId;
 
-		let matchingProduct;
-
-		products.forEach((product) => {
-			if (product.id === productId) {
-				matchingProduct = product;
-			}
-		});
+		const matchingProduct = getProduct(productId);
 
 		const deliveryOptionId = cartItem.deliveryOptionId;
 
-		let deliveryOption;
-
-		deliveryOptions.forEach((option) => {
-			if (option.id === deliveryOptionId) {
-				deliveryOption = option;
-			}
-		});
+		const deliveryOption = getDeliveryOption(deliveryOptionId);
 
 		const today = dayjs();
 		const deliveryDate = today.add(deliveryOption.deliveryDays, 'days');
@@ -206,4 +194,5 @@ export function renderOrderSummary() {
 			renderOrderSummary();
 		});
 	});
+
 };
