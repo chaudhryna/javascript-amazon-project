@@ -7,10 +7,12 @@ import {
 import { products, getProduct } from '../../data/products.js'; // export using brackets is called a named export
 import formatCurrency from '../utils/money.js'; // a default export (there can only be one)
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
-import { deliveryOptions, getDeliveryOption } from '../../data/deliveryOptions.js';
+import { deliveryOptions, getDeliveryOption, calculateDeliveryDate } from '../../data/deliveryOptions.js';
 import { renderPaymentSummary } from './paymentSummary.js';
+import { renderCheckoutHeader } from './checkoutHeader.js';
 
 export function renderOrderSummary() {
+
 	let cartSummaryHTML = '';
 
 	cart.forEach((cartItem) => {
@@ -21,16 +23,12 @@ export function renderOrderSummary() {
 		const deliveryOptionId = cartItem.deliveryOptionId;
 
 		const deliveryOption = getDeliveryOption(deliveryOptionId);
-
-		const today = dayjs();
-		const deliveryDate = today.add(deliveryOption.deliveryDays, 'days');
-
-		const daySting = deliveryDate.format('dddd, MMMM D');
+		const dateString = calculateDeliveryDate(deliveryOption);
 
 		cartSummaryHTML += ` <div class="cart-item-container 
         js-cart-item-container-${matchingProduct.id}">
               <div class="delivery-date">
-                Delivery date: ${daySting}
+                Delivery date: ${dateString}
               </div>
 
               <div class="cart-item-details-grid">
@@ -46,18 +44,17 @@ export function renderOrderSummary() {
                   </div>
                   <div class="product-quantity">
                     <span>
-                      Quantity: <span class="quantity-label js-quantity-label-${
-							matchingProduct.id
-						}">${cartItem.quantity}</span>
+                      Quantity: 
+											<span class="quantity-label 
+											js-quantity-label-${matchingProduct.id}">${cartItem.quantity}
+											</span>
                     </span>
                     <span class="update-quantity-link link-primary js-update-link"
                     data-product-id='${matchingProduct.id}'>
                       Update
                       </span>
-                    
-                      <input class="quantity-input js-quantity-input-${
-							matchingProduct.id
-						}">
+                      <input class="quantity-input 
+											js-quantity-input-${matchingProduct.id}">
                       <span class="save-quantity-link link-primary js-save-link"
                         data-product-id="${matchingProduct.id}">
                         Save
@@ -84,9 +81,9 @@ export function renderOrderSummary() {
 		let html = '';
 
 		deliveryOptions.forEach((deliveryOption) => {
-			const today = dayjs();
-			const deliveryDate = today.add(deliveryOption.deliveryDays, 'days');
-			const dateString = deliveryDate.format('dddd, MMMM D');
+			
+			const dateString = calculateDeliveryDate(deliveryOption);
+			
 			const priceString =
 				deliveryOption.priceCents === 0
 					? 'FREE'
@@ -123,32 +120,26 @@ export function renderOrderSummary() {
 			const productId = link.dataset.productId;
 			removeFromCart(productId);
 
-
-			const container = document.querySelector(
-				`.js-cart-item-container-${productId}`,
-			);
-			container.remove();
+			renderCheckoutHeader();
+			renderOrderSummary();
 			renderPaymentSummary();
-			updateCartQuantity();
 		});
 	});
 
-	function updateCartQuantity() {
-		let cartQuantity = 0;
-		cart.forEach((cartItem) => {
-			cartQuantity += cartItem.quantity;
+	document.querySelectorAll('.js-delivery-option').forEach((element) => {
+		element.addEventListener('click', () => {
+			const { productId, deliveryOptionId } = element.dataset;
+			updateDeliveryOption(productId, deliveryOptionId);
+			renderOrderSummary();
+			renderPaymentSummary();
 		});
-
-		document.querySelector(
-			'.js-return-to-home-link',
-		).innerHTML = `${cartQuantity} items`;
-	}
-
-	updateCartQuantity();
+	});
 
 	document.querySelectorAll('.js-update-link').forEach((link) => {
 		link.addEventListener('click', () => {
+			console.log('Update link clicked.')
 			const productId = link.dataset.productId;
+
 			const container = document.querySelector(
 				`.js-cart-item-container-${productId}`,
 			);
@@ -160,37 +151,18 @@ export function renderOrderSummary() {
 		link.addEventListener('click', () => {
 			const productId = link.dataset.productId;
 
-			const quantityInput = document.querySelector(
-				`.js-quantity-input-${productId}`,
-			);
-			const newQuantity = Number(quantityInput.value);
-
-			if (newQuantity < 0 || newQuantity >= 1000) {
-				alert('Quantity must be at least 0 and less than 1000');
-				return;
-			}
-
-			updateQuantity(productId, newQuantity);
-
 			const container = document.querySelector(
 				`.js-cart-item-container-${productId}`,
 			);
 			container.classList.remove('is-editing-quantity');
 
-			const quantityLabel = document.querySelector(
-				`.js-quantity-label-${productId}`,
+			const quantityInput = document.querySelector(
+				`.js-quantity-input-${productId}`,
 			);
+			const newQuantity = Number(quantityInput.value);
+			updateQuantity(productId, newQuantity);
 
-			quantityLabel.innerHTML = newQuantity;
-
-			updateCartQuantity();
-		});
-	});
-
-	document.querySelectorAll('.js-delivery-option').forEach((element) => {
-		element.addEventListener('click', () => {
-			const { productId, deliveryOptionId } = element.dataset;
-			updateDeliveryOption(productId, deliveryOptionId);
+			renderCheckoutHeader();
 			renderOrderSummary();
 			renderPaymentSummary();
 		});
