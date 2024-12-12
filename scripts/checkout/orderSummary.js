@@ -7,12 +7,15 @@ import {
 import { products, getProduct } from '../../data/products.js'; // export using brackets is called a named export
 import formatCurrency from '../utils/money.js'; // a default export (there can only be one)
 import dayjs from 'https://unpkg.com/dayjs@1.11.10/esm/index.js';
-import { deliveryOptions, getDeliveryOption, calculateDeliveryDate } from '../../data/deliveryOptions.js';
+import {
+	deliveryOptions,
+	getDeliveryOption,
+	calculateDeliveryDate,
+} from '../../data/deliveryOptions.js';
 import { renderPaymentSummary } from './paymentSummary.js';
 import { renderCheckoutHeader } from './checkoutHeader.js';
 
 export function renderOrderSummary() {
-
 	let cartSummaryHTML = '';
 
 	cart.forEach((cartItem) => {
@@ -26,6 +29,7 @@ export function renderOrderSummary() {
 		const dateString = calculateDeliveryDate(deliveryOption);
 
 		cartSummaryHTML += ` <div class="cart-item-container 
+				js-cart-item-container
         js-cart-item-container-${matchingProduct.id}">
               <div class="delivery-date">
                 Delivery date: ${dateString}
@@ -42,7 +46,8 @@ export function renderOrderSummary() {
                   <div class="product-price">
                     $${formatCurrency(matchingProduct.priceCents)}
                   </div>
-                  <div class="product-quantity">
+                  <div class="product-quantity 
+										js-product-quantity-${matchingProduct.id}">
                     <span>
                       Quantity: 
 											<span class="quantity-label 
@@ -59,7 +64,8 @@ export function renderOrderSummary() {
                         data-product-id="${matchingProduct.id}">
                         Save
                       </span>
-                    <span class="delete-quantity-link link-primary js-delete-link" 
+                    <span class="delete-quantity-link link-primary js-delete-link 
+										js-delete-link-${matchingProduct.id}" 
                     data-product-id='${matchingProduct.id}'>
                       Delete
                     </span>
@@ -81,9 +87,8 @@ export function renderOrderSummary() {
 		let html = '';
 
 		deliveryOptions.forEach((deliveryOption) => {
-			
 			const dateString = calculateDeliveryDate(deliveryOption);
-			
+
 			const priceString =
 				deliveryOption.priceCents === 0
 					? 'FREE'
@@ -137,7 +142,7 @@ export function renderOrderSummary() {
 
 	document.querySelectorAll('.js-update-link').forEach((link) => {
 		link.addEventListener('click', () => {
-			console.log('Update link clicked.')
+			console.log('Update link clicked.');
 			const productId = link.dataset.productId;
 
 			const container = document.querySelector(
@@ -167,5 +172,4 @@ export function renderOrderSummary() {
 			renderPaymentSummary();
 		});
 	});
-
-};
+}
