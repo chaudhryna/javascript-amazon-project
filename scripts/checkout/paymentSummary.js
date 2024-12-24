@@ -1,33 +1,31 @@
-import { cart } from '../../data/cart.js';
-import {getProduct} from '../../data/products.js';
+import { cart } from '../../data/cart-class.js';
+import { getProduct } from '../../data/products.js';
 import { getDeliveryOption } from '../../data/deliveryOptions.js';
-import formatCurrancy from '../utils/money.js';
+import { formatCurrency } from '../utils/money.js';
 
 export function renderPaymentSummary() {
-  let productPriceCents = 0;
-  let shippingPriceCents = 0;
+	let productPriceCents = 0;
+	let shippingPriceCents = 0;
 
+	cart.cartItems.forEach((cartItem) => {
+		const product = getProduct(cartItem.productId);
+		productPriceCents += product.priceCents * cartItem.quantity;
 
+		const deliveryOption = getDeliveryOption(cartItem.deliveryOptionId);
+		shippingPriceCents += deliveryOption.priceCents;
+	});
 
-  cart.forEach((cartItem) => {
-    const product = getProduct(cartItem.productId);
-    productPriceCents += product.priceCents * cartItem.quantity;
+	const totalBeforeTaxCents = productPriceCents + shippingPriceCents;
+	const taxCents = totalBeforeTaxCents * 0.1;
+	const totalCents = totalBeforeTaxCents + taxCents;
 
-    const deliveryOption = getDeliveryOption(cartItem.deliveryOptionId);
-    shippingPriceCents += deliveryOption.priceCents;
-  });
+	let cartQuantity = 0;
 
-  const totalBeforeTaxCents = productPriceCents + shippingPriceCents;
-  const taxCents = totalBeforeTaxCents * 0.1; 
-  const totalCents = totalBeforeTaxCents + taxCents;
+	cart.cartItems.forEach((cartItem) => {
+		cartQuantity += cartItem.quantity;
+	});
 
-  let cartQuantity = 0;
-
-  cart.forEach((cartItem) => {
-    cartQuantity += cartItem.quantity;
-  });
-
-  const paymentSummaryHTML = `
+	const paymentSummaryHTML = `
     <div class="payment-summary-title">
       Order Summary
     </div>
@@ -35,35 +33,35 @@ export function renderPaymentSummary() {
     <div class="payment-summary-row">
       <div class="js-payment-summary-items">Items (${cartQuantity}):</div>
       <div class="payment-summary-money">
-        $${formatCurrancy(productPriceCents)}
+        $${formatCurrency(productPriceCents)}
       </div>
     </div>
 
     <div class="payment-summary-row">
       <div>Shipping &amp; handling:</div>
       <div class="payment-summary-money">
-        $${formatCurrancy(shippingPriceCents)}
+        $${formatCurrency(shippingPriceCents)}
       </div>
     </div>
 
     <div class="payment-summary-row subtotal-row">
       <div>Total before tax:</div>
       <div class="payment-summary-money">
-        $${formatCurrancy(totalBeforeTaxCents)}
+        $${formatCurrency(totalBeforeTaxCents)}
       </div>
     </div>
 
     <div class="payment-summary-row">
       <div>Estimated tax (10%):</div>
       <div class="payment-summary-money">
-        ${formatCurrancy(taxCents)}
+        ${formatCurrency(taxCents)}
       </div>
     </div>
 
     <div class="payment-summary-row total-row">
       <div>Order total:</div>
       <div class="payment-summary-money">
-        $${formatCurrancy(totalCents)}
+        $${formatCurrency(totalCents)}
       </div>
     </div>
 
@@ -71,6 +69,7 @@ export function renderPaymentSummary() {
       Place your order
     </button>
   `;
-  
-  document.querySelector('.js-payment-summary').innerHTML = paymentSummaryHTML;
+
+	document.querySelector('.js-payment-summary').innerHTML =
+		paymentSummaryHTML;
 }

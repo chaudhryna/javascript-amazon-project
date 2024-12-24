@@ -1,11 +1,11 @@
-import { cart, addToCart, updateQuantity } from '../data/cart.js';
+import { cart } from '../data/cart-class.js';
 import { products } from '../data/products.js';
 import { formatCurrency } from './utils/money.js';
 
 let productsHTML = '';
 
 products.forEach((product) => {
-    productsHTML += `
+	productsHTML += `
     <div class="product-container">
           <div class="product-image-container">
             <img class="product-image"
@@ -60,40 +60,22 @@ products.forEach((product) => {
 
 document.querySelector('.js-products-grid').innerHTML = productsHTML;
 
-const addedMessageTimeouts = {};
+function updateCartQuantity() {
+	let cartQuantity = 0;
 
-document.querySelectorAll('.js-add-to-cart')
-  .forEach((button) => {
-      button.addEventListener('click', () => {
-        const {productId} = button.dataset;
-        
-        addToCart(productId);
+	cart.cartItems.forEach((cartItem) => {
+		cartQuantity += cartItem.quantity;
+	});
 
-        let cartQuantity = 0;
+	document.querySelector('.js-cart-quantity').innerHTML = cartQuantity;
+}
 
-		    cart.forEach((cartItem) => {
-			  cartQuantity += cartItem.quantity;
-		    });
+updateCartQuantity();
 
-        document.querySelector('.js-cart-quantity',).innerHTML = cartQuantity;
-
-        const addedMessage = document.querySelector(
-					`.js-added-to-cart-${productId}`,
-				);
-        
-        addedMessage.classList.add('added-to-cart-visible');
-
-        const previousTimeoutId = addedMessageTimeouts[productId];
-        if (previousTimeoutId) {
-          clearTimeout(previousTimeoutId);
-        }
-
-        const timeoutId = setTimeout(() => {
-          addedMessage.classList.remove('added-to-cart-visible');
-        }, 2000);
-
-        // Save the timeoutId for this product
-        // so we can stop it later if we need to.
-        addedMessageTimeouts[productId] = timeoutId;
-    });
-  });
+document.querySelectorAll('.js-add-to-cart').forEach((button) => {
+	button.addEventListener('click', () => {
+		const productId = button.dataset.productId;
+		cart.addToCart(productId);
+		updateCartQuantity();
+	});
+});
